@@ -19,7 +19,7 @@ class Game:
         self.state = initial_state
         self.heuristic = heuristic
 
-    def neighbors(self, state):
+    def neighbors(self, state, turn):
         out = set([])
         return out
 
@@ -66,6 +66,24 @@ class OthelloState:
     def is_empty(self, x, y):
         return self.representation.is_empty(x, y)
 
+    def is_final(self):
+        num_black_discs = 0
+        num_white_discs = 0
+        for i in range(8):
+            for j in range(8):
+                if self.representation.get_disc(i, j) == "-":
+                    return None
+                elif self.representation.get_disc(i, j) == 'k':
+                    num_black_discs += 1
+                else:
+                    num_white_discs += 1
+        if num_black_discs > num_white_discs:
+            return "k"
+        elif num_black_discs < num_white_discs:
+            return "w"
+        else:
+            return "e"
+
     def get_affected_discs(self, x, y, my_color):
         total_affected_discs = set([])
         if self.representation.is_empty(x, y):
@@ -107,7 +125,7 @@ class OthelloState:
         logging.debug("get_affected_discs: total # of affected discs: {}".format(len(total_affected_discs)))
         return total_affected_discs
 
-    # returns the affected enemy discs (of the row x) if the player would place a disc of color = my_color in position x, y
+    # returns the affected enemy discs (of row x) if the player would place a disc of color = my_color in position x,y
     def get_affected_row(self, x, y, y1, my_color):
         out_previous = set([])
         out_next = set([])
@@ -130,7 +148,7 @@ class OthelloState:
                     out_previous.clear()
         return out_next | out_previous
 
-    # returns the affected enemy discs (of the column y) if the player would place a disc of color = my_color in position x, y
+    # returns the affected enemy discs (column y) if the player would place a disc of color = my_color in position x, y
     def get_affected_col(self, x, y, x1, my_color):
         out_above = set([])
         out_under = set([])
@@ -208,33 +226,33 @@ class OthelloState:
         return out_next | out_previous
 
     def get_nearest_discs_row(self, x, y, color):
-        next = None
+        next_d = None
         previous = None
         j = y
-        while j >= 0:
+        while j > 0:
             j -= 1
             if self.representation.get_disc(x, j) == color:
                 previous = (x, j)
                 break
         j = y
-        while j <= 7:
-            j -= 1
+        while j < 7:
+            j += 1
             if self.representation.get_disc(x, j) == color:
-                next = (x, j)
+                next_d = (x, j)
                 break
-        return previous, next
+        return previous, next_d
 
     def get_nearest_discs_col(self, x, y, color):
         above = None
         under = None
         i = x
-        while i >= 0:
+        while i > 0:
             i -= 1
             if self.representation.get_disc(i, y) == color:
                 above = (i, y)
                 break
         i = x
-        while i <= 7:
+        while i < 7:
             i += 1
             if self.representation.get_disc(i, y) == color:
                 under = (i, y)
@@ -244,11 +262,11 @@ class OthelloState:
     # first diag means the one that goes from top-left to bottom-right
     def get_nearest_discs_first_diag(self, x, y, color):
         previous = None
-        next = None
+        next_d = None
         # checking 1st semi-diagonal (from x,y to top-left)
         i = x
         j = y
-        while i >= 0 and j >= 0:
+        while i > 0 and j > 0:
             i -= 1
             j -= 1
             if self.representation.get_disc(i, j) == color:
@@ -257,40 +275,37 @@ class OthelloState:
         # checking 2nd semi-diagonal (from x,y to bottom-right)
         i = x
         j = y
-        while i <= 7 and j <= 7:
+        while i < 7 and j < 7:
             i += 1
             j += 1
             if self.representation.get_disc(i, j) == color:
-                next = (i, j)
+                next_d = (i, j)
                 break
-        return previous, next
+        return previous, next_d
 
     # second diag means the one that goes from top-right to bottom-left
     def get_nearest_discs_second_diag(self, x, y, color):
         previous = None
-        next = None
+        next_d = None
         # checking 1st semi-diagonal (from x,y to top-right)
         i = x
         j = y
-        while i >= 0 and j <= 7:
+        while i > 0 and j < 7:
             i -= 1
             j += 1
             if self.representation.get_disc(i, j) == color:
-                next = (i, j)
+                next_d = (i, j)
                 break
         # checking 2nd semi-diagonal (from x,y to bottom-left)
         i = x
         j = y
-        while i <= 7 and j >= 0:
+        while i < 7 and j > 0:
             i += 1
             j -= 1
             if self.representation.get_disc(i, j) == color:
                 previous = (i, j)
                 break
-        return previous, next
-
-    def is_admissible(self, x, y, color):
-        return len(self.get_affected_discs(x, y, color)) > 0
+        return previous, next_d
 
 
 class OthelloGame(Game):
@@ -299,16 +314,22 @@ class OthelloGame(Game):
         self.state = OthelloState(h)
 
     # place a disc at coordinates x,j and reverse the affected enemy discs accordingly
-    def make_move(self, state, x, y, my_color, coordinates):
+    @staticmethod
+    def make_move(state, x, y, my_color, coordinates):
         out = cp.copy(state)
         # for every affected disc, change it to my color
-        for pos in coordinates:
-            out.set_disc(pos[0], pos[1], my_color)
-            logging.debug("make_move: changed color of disc in pos ({}, {}) to {}".format(pos[0], pos[1], my_color))
+        if len(coordinates) > 0:
+            out.set_disc(x, y, my_color)
+            for pos in coordinates:
+                out.set_disc(pos[0], pos[1], my_color)
+                logging.debug("make_move: changed color of disc in pos ({}, {}) to {}".format(pos[0], pos[1], my_color))
         return out
 
-    def neighbours(self, turn):
-        state = self.state
+    def neighbors(self, turn, ext_state=None):
+        if ext_state is None:
+            state = self.state
+        else:
+            state = ext_state
         out = set([state])
         for i in range(8):
             for j in range(8):
@@ -316,18 +337,6 @@ class OthelloGame(Game):
                     affected_discs = state.get_affected_discs(i, j, turn)
                     if len(affected_discs) > 0:
                         new_state = self.make_move(state, i, j, turn, affected_discs)
-                        # TODO call heuristic
                         out.add(new_state)
         logging.debug("neighbours: discovered {} neighbours".format(len(out)))
         return out
-
-
-
-
-
-
-
-
-
-
-
