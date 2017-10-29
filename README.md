@@ -1,1 +1,1 @@
-othello
+Two intelligent agents that plays othello/reversi using min max search over states weighted by a weighted average of different heuristics

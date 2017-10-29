@@ -11,7 +11,7 @@ def main():
     logging.basicConfig(level='INFO')
     level = input("Insert level (odd number): ")
 
-    file_name = "othello_{}.txt".format(datetime.now().strftime('%Y-%m-%d_%H-%M-%S'))
+    file_name = "plays/othello_{}.txt".format(datetime.now().strftime('%Y-%m-%d_%H-%M-%S'))
     out = open(file_name, "w")
 
     heuristic = heur.OthelloHeuristic()
