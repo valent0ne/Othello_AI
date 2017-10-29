@@ -1,4 +1,4 @@
-
+import logging
 corners = {(0, 0), (0, 1), (1, 0), (6, 0), (7, 0), (7, 1), (0, 6), (0, 7), (1, 7), (7, 6), (7, 7), (6, 7)}
 
 
@@ -14,7 +14,13 @@ class Heuristic:
 class OthelloHeuristic(Heuristic):
 
     def H(self, state, turn, game):
-        return (self.H1(state, turn) + self.H2(state, turn, game) + self.H3(state, turn)) / 3
+        h1 = self.H1(state, turn)
+        # h2 = self.H2(state, turn, game)
+        h3 = self.H3(state, turn)
+        # avg = (h1*0.3 + h2*0.3 + h3*0.4) / 3
+        avg = (h1 * 0.45 + h3 * 0.55) / 2
+        logging.debug("H: avg = {}".format(avg))
+        return avg
 
     # Coin Parity
     def H1(self, state, turn):
@@ -41,14 +47,15 @@ class OthelloHeuristic(Heuristic):
         return corner_heuristic_value
 
     def Hl(self, game, state, l, turn):
+        logging.debug("Hl: recursive call, level = {}; turn = {}".format(l, turn))
         if l == 0:
             return self.H(state, turn, game)
         if turn == 'w':
             next_turn = 'k'
-            return max([self.Hl(game, x, int(l) - 1, next_turn) for x in game.neighbors(turn)])
+            return max([self.Hl(game, x, int(l) - 1, next_turn) for x in game.neighbors(turn, state)])
         else:
             next_turn = 'w'
-            return min([self.Hl(game, x, int(l) - 1, next_turn) for x in game.neighbors(turn)])
+            return min([self.Hl(game, x, int(l) - 1, next_turn) for x in game.neighbors(turn, state)])
 
     @staticmethod
     def count_discs(state, turn):

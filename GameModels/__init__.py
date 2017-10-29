@@ -57,6 +57,16 @@ class OthelloState:
         self.heuristic = h
         self.representation = OthelloRepresentation()
 
+    def __eq__(self, other):
+        return str(self.representation.board) == str(other.representation.board)
+
+    def __ne__(self, other):
+        return str(self.representation.board) != str(other.representation.board)
+
+
+    def __hash__(self):
+        return hash(str(self.representation.board))
+
     def get_disc(self, x, y):
         return self.representation.get_disc(x, y)
 
@@ -86,6 +96,7 @@ class OthelloState:
 
     def get_affected_discs(self, x, y, my_color):
         total_affected_discs = set([])
+        logging.debug("get_affected_discs: coordinates = [{},{}], player = {}".format(x, y, my_color))
         if self.representation.is_empty(x, y):
 
             set_affected_row = set([])
@@ -115,14 +126,15 @@ class OthelloState:
             if sdiag_next is not None:
                 set_affected_sdiag |= self.get_affected_second_diag(x, y, sdiag_next[0], sdiag_next[1], my_color)
 
-            logging.debug("get_affected_discs: len of affected discs in row {} = {}".format(x, len(set_affected_row)))
-            logging.debug("get_affected_discs: len of affected discs in col {} = {}".format(y, len(set_affected_col)))
-            logging.debug("get_affected_discs: len of affected discs in first diag. = {}".format(len(set_affected_fdiag)))
-            logging.debug("get_affected_discs: len of affected discs in second diag. = {}".format(len(set_affected_sdiag)))
+            # logging.debug("get_affected_discs: len of affected discs in row {} = {}".format(x, len(set_affected_row)))
+            # logging.debug("get_affected_discs: len of affected discs in col {} = {}".format(y, len(set_affected_col)))
+            # logging.debug("get_affected_discs: len of affected discs in first diag. = {}".format(len(set_affected_fdiag)))
+            # logging.debug("get_affected_discs: len of affected discs in second diag. = {}".format(len(set_affected_sdiag)))
 
             total_affected_discs = set_affected_row | set_affected_col | set_affected_fdiag | set_affected_sdiag
 
         logging.debug("get_affected_discs: total # of affected discs: {}".format(len(total_affected_discs)))
+        logging.debug("get_affected_discs: ---------------------------------------------\n")
         return total_affected_discs
 
     # returns the affected enemy discs (of row x) if the player would place a disc of color = my_color in position x,y
@@ -138,6 +150,7 @@ class OthelloState:
                     out_next.add((x, j))
                 elif self.representation.get_disc(x, j) == '-':
                     out_next.clear()
+                    break
         elif y1 < y:
             j = y
             while j > y1:
@@ -146,6 +159,7 @@ class OthelloState:
                     out_previous.add((x, j))
                 elif self.representation.get_disc(x, j) == '-':
                     out_previous.clear()
+                    break
         return out_next | out_previous
 
     # returns the affected enemy discs (column y) if the player would place a disc of color = my_color in position x, y
@@ -161,6 +175,7 @@ class OthelloState:
                     out_under.add((i, y))
                 elif self.representation.get_disc(i, y) == '-':
                     out_under.clear()
+                    break
         elif x1 < x:
             i = x
             while i > x1:
@@ -169,6 +184,7 @@ class OthelloState:
                     out_above.add((i, y))
                 elif self.representation.get_disc(i, y) == '-':
                     out_above.clear()
+                    break
         return out_above | out_under
 
     # as above but in the first diag.: top-left -> bottom-right
@@ -186,6 +202,7 @@ class OthelloState:
                     out_previous.add((i, j))
                 elif self.representation.get_disc(i, j) == '-':
                     out_previous.clear()
+                    break
         elif x < x1 and y < y1:
             i = x
             j = y
@@ -196,6 +213,7 @@ class OthelloState:
                     out_next.add((i, j))
                 elif self.representation.get_disc(i, j) == '-':
                     out_next.clear()
+                    break
         return out_next | out_previous
 
     # as above but in the first diag.: top-right -> bottom-left
@@ -213,6 +231,7 @@ class OthelloState:
                     out_previous.add((i, j))
                 elif self.representation.get_disc(i, j) == '-':
                     out_previous.clear()
+                    break
         elif x < x1 and y > y1:
             i = x
             j = y
@@ -223,6 +242,7 @@ class OthelloState:
                     out_next.add((i, j))
                 elif self.representation.get_disc(i, j) == '-':
                     out_next.clear()
+                    break
         return out_next | out_previous
 
     def get_nearest_discs_row(self, x, y, color):
@@ -316,27 +336,30 @@ class OthelloGame(Game):
     # place a disc at coordinates x,j and reverse the affected enemy discs accordingly
     @staticmethod
     def make_move(state, x, y, my_color, coordinates):
-        out = cp.copy(state)
+        out = cp.deepcopy(state)
         # for every affected disc, change it to my color
         if len(coordinates) > 0:
             out.set_disc(x, y, my_color)
             for pos in coordinates:
                 out.set_disc(pos[0], pos[1], my_color)
-                logging.debug("make_move: changed color of disc in pos ({}, {}) to {}".format(pos[0], pos[1], my_color))
+                logging.debug("make_move: changed color of disc in pos ({}, {}) to {}\n".format(pos[0], pos[1], my_color))
         return out
 
     def neighbors(self, turn, ext_state=None):
         if ext_state is None:
-            state = self.state
+            state = cp.deepcopy(self.state)
         else:
-            state = ext_state
+            state = cp.deepcopy(ext_state)
+        logging.debug("neighbors: copied state =\n {}".format(state.representation.board))
         out = set([state])
         for i in range(8):
             for j in range(8):
                 if state.representation.get_disc(i, j) == '-':
                     affected_discs = state.get_affected_discs(i, j, turn)
                     if len(affected_discs) > 0:
+                        logging.debug("neighbors: state = \n {}".format(state.representation.board))
                         new_state = self.make_move(state, i, j, turn, affected_discs)
+                        logging.debug("neighbors: new_state =\n {}".format(new_state.representation.board))
                         out.add(new_state)
         logging.debug("neighbours: discovered {} neighbours".format(len(out)))
         return out
