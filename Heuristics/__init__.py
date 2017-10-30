@@ -1,6 +1,9 @@
 import logging
-corners = {(0, 0), (0, 1), (1, 0), (6, 0), (7, 0), (7, 1), (0, 6), (0, 7), (1, 7), (7, 6), (7, 7), (6, 7)}
-
+# set of the corners of the board
+corners = {(0, 0), (0, 1), (1, 0), 
+           (6, 0), (7, 0), (7, 1), 
+           (0, 6), (0, 7), (1, 7), 
+           (7, 6), (7, 7), (6, 7)}
 
 class Heuristic:
 
@@ -12,22 +15,25 @@ class Heuristic:
 
 
 class OthelloHeuristic(Heuristic):
-
+    # computes an heuristic as a weighted average of h1, h2 and h3
     def H(self, state, turn, game):
         h1 = self.H1(state, turn)
         h2 = self.H2(state, turn, game)
         h3 = self.H3(state, turn)
         # avg = (h1*0.3 + h2*0.3 + h3*0.4) / 3
-        avg = (h1 * 0.42 + h3 * 0.58) / 2
+        avg = (h1 * 0.4 + h3 * 0.6) / 2
         logging.debug("H: avg = {}".format(avg))
         return avg
 
     # Coin Parity
+    # this heuristic computes the difference in disc between the my discs and the enemy discs
     def H1(self, state, turn):
         my_discs, enemy_discs = self.count_discs(state, turn)
         return 100 * (enemy_discs - my_discs) / (enemy_discs + my_discs)
 
     # Mobility
+    # this heuristic weights the state based on the number of states i can reach from the current state
+    # so, the more new states i can reach the more valuable the state is
     def H2(self, state, turn, game):
         my_moves = len(game.neighbors(turn, state))
         enemy_moves = len(game.neighbors(self.get_enemy_color(turn), state))
@@ -38,6 +44,7 @@ class OthelloHeuristic(Heuristic):
         return mobility_heuristic_value
 
     # Corners Captured
+    # this heuristic weights the state considering the number of discs that are situated in one of the corners positions
     def H3(self, state, turn):
         my_corner_discs, enemy_corner_discs = self.count_corner_discs(state, turn)
         if (enemy_corner_discs + my_corner_discs) != 0:
@@ -46,6 +53,7 @@ class OthelloHeuristic(Heuristic):
             corner_heuristic_value = 0
         return corner_heuristic_value
 
+    # performs minMax search going deep l levels
     def Hl(self, game, state, l, turn):
         logging.debug("Hl: recursive call, level = {}; turn = {}".format(l, turn))
         if l == 0:

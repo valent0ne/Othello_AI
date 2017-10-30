@@ -2,7 +2,7 @@ import numpy as np
 import copy as cp
 import logging
 
-
+# initial othello board
 initial_board = [['-', '-', '-', '-', '-', '-', '-', '-'],
                  ['-', '-', '-', '-', '-', '-', '-', '-'],
                  ['-', '-', '-', '-', '-', '-', '-', '-'],
@@ -34,12 +34,15 @@ class OthelloRepresentation:
     def __init__(self):
         self.board = np.array(cp.deepcopy(initial_board))
 
+    # given a position, returns the board in that position
     def get_disc(self, x, y):
         return self.board[x][y]
 
+    # given a position, set the disc in that position
     def set_disc(self, x, y, disc):
         self.board[x][y] = disc
 
+    # check whether a position is empty
     def is_empty(self, x, y):
         return self.board[x][y] == '-'
 
@@ -52,30 +55,36 @@ class OthelloRepresentation:
 
 
 class OthelloState:
-
+    # a state contains the representation (board) and the heuristic
     def __init__(self, h):
         self.heuristic = h
         self.representation = OthelloRepresentation()
 
+    # redefine equal for the states obj
     def __eq__(self, other):
         return str(self.representation.board) == str(other.representation.board)
 
+    # redefine not equal for the state obj
     def __ne__(self, other):
         return str(self.representation.board) != str(other.representation.board)
 
-
+    # redefine hash for state obj
     def __hash__(self):
         return hash(str(self.representation.board))
 
+    # wrapper
     def get_disc(self, x, y):
         return self.representation.get_disc(x, y)
 
+    # wrapper
     def set_disc(self, x, y, disc):
         self.representation.set_disc(x, y, disc)
 
+    # wrapper
     def is_empty(self, x, y):
         return self.representation.is_empty(x, y)
 
+    # check whether the state is final
     def is_final(self):
         num_black_discs = 0
         num_white_discs = 0
@@ -94,6 +103,7 @@ class OthelloState:
         else:
             return "e"
 
+    # returns a set of affected disc after the new disc of color "my_color" is positioned in position x, y
     def get_affected_discs(self, x, y, my_color):
         total_affected_discs = set([])
         logging.debug("get_affected_discs: coordinates = [{},{}], player = {}".format(x, y, my_color))
@@ -245,6 +255,7 @@ class OthelloState:
                     break
         return out_next | out_previous
 
+    # given a position returns the nearest disc of the same color in the row
     def get_nearest_discs_row(self, x, y, color):
         next_d = None
         previous = None
@@ -262,6 +273,7 @@ class OthelloState:
                 break
         return previous, next_d
 
+    # given a position returns the nearest disc of the same color in the col
     def get_nearest_discs_col(self, x, y, color):
         above = None
         under = None
@@ -279,6 +291,7 @@ class OthelloState:
                 break
         return above, under
 
+    # given a position returns the nearest disc of the same color in the first diag
     # first diag means the one that goes from top-left to bottom-right
     def get_nearest_discs_first_diag(self, x, y, color):
         previous = None
@@ -303,6 +316,7 @@ class OthelloState:
                 break
         return previous, next_d
 
+    # given a position returns the nearest disc of the same color in the second diag
     # second diag means the one that goes from top-right to bottom-left
     def get_nearest_discs_second_diag(self, x, y, color):
         previous = None
@@ -345,6 +359,7 @@ class OthelloGame(Game):
                 logging.debug("make_move: changed color of disc in pos ({}, {}) to {}\n".format(pos[0], pos[1], my_color))
         return out
 
+    # computes the neighbors of the given state
     def neighbors(self, turn, ext_state=None):
         if ext_state is None:
             state = cp.deepcopy(self.state)
