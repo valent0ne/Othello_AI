@@ -15,10 +15,10 @@ class OthelloHeuristic(Heuristic):
 
     def H(self, state, turn, game):
         h1 = self.H1(state, turn)
-        # h2 = self.H2(state, turn, game)
+        h2 = self.H2(state, turn, game)
         h3 = self.H3(state, turn)
         # avg = (h1*0.3 + h2*0.3 + h3*0.4) / 3
-        avg = (h1 * 0.45 + h3 * 0.55) / 2
+        avg = (h1 * 0.42 + h3 * 0.58) / 2
         logging.debug("H: avg = {}".format(avg))
         return avg
 
