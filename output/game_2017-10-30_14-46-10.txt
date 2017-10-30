@@ -1,2 +1,0 @@
-Starting player is: k
-Level: 3

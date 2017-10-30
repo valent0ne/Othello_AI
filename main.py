@@ -6,21 +6,22 @@ from datetime import datetime
 def main():
 
     # It gives the user the option to choose the (odd) level up to where he will come to explore the minMax
-    level = input("Insert level (odd number): ")
+    level = input("Choose the depth you want to get to explore the tree : ")
     # From the rules of Othello the starting player is always black
     # Remember: k--> black, w--> white, '-'--> empty cell
     turn = 'k'
 
 
+    print("All the moves of the play are saved in the file.\n")
 
     # Each paly is saved on a file
-    file_name = "output/game_{}.txt".format(datetime.now().strftime('%Y-%m-%d_%H-%M-%S'))
-    print("All the moves of the play are saved in the file called: {}\n".format(file_name))
+    file_name = input("Choose a name for the file: ")
+    file_path = "output/{}.txt".format(file_name)
     print("Please, wait...\n")
-    out = open(file_name, "w")
+    out = open(file_path, "w")
 
     out.write("Starting player is: {}\n".format(turn))
-    out.write("Level: {}".format(level))
+    out.write("Level: {}\n\n\n".format(level))
 
     heuristic = he.OthelloHeuristic()
     othello = g.OthelloGame(heuristic)

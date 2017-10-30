@@ -372,7 +372,6 @@ class OthelloGame(Game):
             out.set_disc(a, b, my_color)
             for pos in coordinates:
                 out.set_disc(pos[0], pos[1], my_color)
-                logging.debug("make_move: changed color of disc in pos ({}, {}) to {}\n".format(pos[0], pos[1], my_color))
         return out
 
     # Method that calculate the neigborood of a certain state
@@ -381,16 +380,12 @@ class OthelloGame(Game):
             state = cp.deepcopy(self.state)
         else:
             state = cp.deepcopy(ext_state)
-        logging.debug("neighbors: copied state =\n {}".format(state.representation.board))
         out = set([state])
         for i in range(8):
             for j in range(8):
                 if state.representation.get_disc(i, j) == '-':
                     affected_discs = state.get_w_discs_change(i, j, turn)
                     if len(affected_discs) > 0:
-                        logging.debug("neighbors: state = \n {}".format(state.representation.board))
                         new_state = self.make_move(state, i, j, turn, affected_discs)
-                        logging.debug("neighbors: new_state =\n {}".format(new_state.representation.board))
                         out.add(new_state)
-        logging.debug("neighbours: discovered {} neighbours".format(len(out)))
         return out
