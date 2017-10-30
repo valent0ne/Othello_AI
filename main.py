@@ -1,6 +1,7 @@
 import GameModels as game
 import Heuristics as heur
 import logging
+import copy as cp
 import numpy as np
 from datetime import datetime
 import time
@@ -19,7 +20,7 @@ def main():
 
     turn = 'k'
 
-    logging.info("starting player: {}, initial board:\n {}\n\n".format(turn, np.copy(game.initial_board)))
+    logging.info("starting player: {}, initial board:\n {}\n\n".format(turn, np.array(cp.copy(game.initial_board))))
 
     ix = othello.state
 

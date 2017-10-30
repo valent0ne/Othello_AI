@@ -32,7 +32,7 @@ class Game:
 
 class OthelloRepresentation:
     def __init__(self):
-        self.board = np.copy(initial_board)
+        self.board = np.array(cp.deepcopy(initial_board))
 
     def get_disc(self, x, y):
         return self.board[x][y]
